@@ -1,0 +1,1 @@
+Prototipo de app móvil que consume un api para enlistar los items como estudiantes, con sus respectivos atributos, adaptación de nota usando id, alerta de estudiantes reprobados, filtro por notas y modal de detalles con input y manejo de toast
