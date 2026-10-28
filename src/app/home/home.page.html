@@ -1,0 +1,289 @@
+<!--
+  ============================================================================
+  PLANTILLA REUTILIZABLE
+  ============================================================================
+  Esta plantilla NO contiene textos ni cálculos del dominio: todo se lee desde
+  `config` y desde los getters del componente (home.page.ts).
+  =====F======================================================================
+-->
+
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ config.pageTitle }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-grid>
+
+    <!-- ================================================================== -->
+    <!-- DASHBOARD: tarjetas con métricas calculadas dinámicamente          -->
+    <!-- ================================================================== -->
+    <ion-row class="ion-margin-bottom">
+      <ion-col size="12" size-sm="6" size-md="4">
+        <ion-card class="metric-card">
+          <ion-card-content>
+            <p class="metric-label text-muted">{{ config.visibleStudentsLabel }}</p>
+            <p class="metric-value">{{ metrics.visibleCount }}</p>
+            <p class="metric-hint text-muted">{{ config.visibleStudentsHint }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-sm="6" size-md="4">
+        <ion-card class="metric-card">
+          <ion-card-content>
+            <p class="metric-label text-muted">{{ config.averageNoteLabel }}</p>
+            <p class="metric-value">
+              {{ metrics.averageNote | number:'1.1-2' }}
+            </p>
+            <p class="metric-hint text-muted">Promedio general</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <ion-col size="12" size-md="4">
+        <ion-card class="metric-card" [class.metric-card--danger]="metrics.criticalCount > 0">
+          <ion-card-content>
+            <p class="metric-label text-muted">{{ config.criticalNoteLabel }}</p>
+            <p class="metric-value">{{ metrics.criticalCount }}</p>
+            <p class="metric-hint text-muted">nota &lt; {{ config.noteThreshold }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+
+    <ion-row>
+
+      <!-- ================================================================== -->
+      <!-- BLOQUE DE FILTROS                                                  -->
+      <!-- ================================================================== -->
+      <ion-col size="12" size-lg="4">
+        <ion-card color="light">
+          <ion-card-header>
+            <ion-card-title>{{ config.filtersCardTitle }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+
+            <div class="filter-stack">
+
+              <!-- 1. Buscador de texto -->
+              <ion-searchbar
+                [placeholder]="config.searchPlaceholder"
+                [attr.aria-label]="config.searchPlaceholder"
+                [debounce]="0"
+                [(ngModel)]="filters.query">
+              </ion-searchbar>
+
+              <!-- 2. Rango de Notas (Mínima y Máxima) -->
+              <div class="filter-field">
+                <ion-input
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  max="5"
+                  fill="outline"
+                  labelPlacement="stacked"
+                  [label]="config.minNoteLabel"
+                  [attr.aria-label]="config.minNoteLabel"
+                  required
+                  [(ngModel)]="filters.min"
+                  #minCtrl="ngModel">
+                </ion-input>
+
+                @if (minCtrl.invalid && minCtrl.touched) {
+                  <ion-note color="danger" class="validation-note">
+                    {{ config.requiredFieldMessage }}
+                  </ion-note>
+                }
+              </div>
+
+              <div class="filter-field">
+                <ion-input
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  max="5"
+                  fill="outline"
+                  labelPlacement="stacked"
+                  [label]="config.maxNoteLabel"
+                  [attr.aria-label]="config.maxNoteLabel"
+                  required
+                  [(ngModel)]="filters.max"
+                  #maxCtrl="ngModel">
+                </ion-input>
+
+                @if (maxCtrl.invalid && maxCtrl.touched) {
+                  <ion-note color="danger" class="validation-note">
+                    {{ config.requiredFieldMessage }}
+                  </ion-note>
+                }
+              </div>
+
+              @if (rangeError && !minCtrl.invalid && !maxCtrl.invalid) {
+                <ion-note color="danger" class="validation-note">
+                  {{ rangeError }}
+                </ion-note>
+              }
+
+              <!-- 3. Ordenamiento -->
+              <ion-select
+                fill="outline"
+                labelPlacement="stacked"
+                interface="popover"
+                [label]="config.sortLabel"
+                [attr.aria-label]="config.sortLabel"
+                [(ngModel)]="filters.sort">
+                <ion-select-option value="none">{{ config.sortNoneLabel }}</ion-select-option>
+                <ion-select-option value="noteAsc">{{ config.sortNoteAscLabel }}</ion-select-option>
+                <ion-select-option value="noteDesc">{{ config.sortNoteDescLabel }}</ion-select-option>
+              </ion-select>
+
+              <!-- 4. Limpiar filtros -->
+              <ion-button expand="block" fill="outline" color="medium" (click)="resetFilters()">
+                {{ config.clearFiltersLabel }}
+              </ion-button>
+
+            </div>
+
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <!-- ================================================================== -->
+      <!-- LISTADO PRINCIPAL                                                  -->
+      <!-- ================================================================== -->
+      <ion-col size="12" size-lg="8">
+
+        @if (isLoading()) {
+          <div class="ion-text-center ion-padding">
+            <ion-spinner name="crescent"></ion-spinner>
+          </div>
+        } @else if (loadError()) {
+          <div class="ion-text-center ion-padding">
+            <p class="error-state">{{ loadError() }}</p>
+            <ion-button fill="outline" (click)="loadData()">{{ config.retryLabel }}</ion-button>
+          </div>
+        } @else {
+
+          <ion-list lines="inset">
+
+            @for (item of filteredItems; track item.id) {
+              <ion-item class="order-item">
+
+                <!-- Avatar con el ID del estudiante -->
+                <ion-avatar slot="start" class="order-avatar">
+                  <div class="avatar-content">{{ config.idPrefix }}{{ item.id }}</div>
+                </ion-avatar>
+
+                <ion-label>
+                  <h2 class="row-title line-clamp-2">{{ item[config.nameField] }}</h2>
+
+                  <!-- Nota del estudiante -->
+                  <div class="row-meta text-muted">
+                    <span>
+                      {{ config.noteLabel }}:
+                      <span class="row-strong">{{ noteOf(item) | number:'1.1-2' }}</span>
+                    </span>
+                  </div>
+
+                  <p class="row-description text-muted line-clamp-2">{{ item[config.descriptionField] }}</p>
+
+                  <!-- Badge y botón de acción -->
+                  <div class="item-actions">
+                    <ion-badge [color]="isCriticalNote(item) ? 'danger' : 'success'">
+                      {{ isCriticalNote(item) ? config.criticalLabel : config.stableLabel }}
+                    </ion-badge>
+
+                    <ion-button
+                      fill="clear"
+                      color="primary"
+                      [attr.aria-label]="config.viewDetailLabel + ': ' + item[config.nameField]"
+                      (click)="openModal(item)">
+                      <ion-icon slot="start" name="eye-outline" aria-hidden="true"></ion-icon>
+                      {{ config.viewDetailLabel }}
+                    </ion-button>
+                  </div>
+                </ion-label>
+
+              </ion-item>
+            } @empty {
+              <div class="ion-text-center ion-padding empty-state text-muted">
+                <p>{{ config.emptyListMessage }}</p>
+              </div>
+            }
+
+          </ion-list>
+        }
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+
+<!-- ====================================================================== -->
+<!-- MODAL DE DETALLE DEL ESTUDIANTE                                        -->
+<!-- ====================================================================== -->
+<ion-modal [isOpen]="isModalOpen()" (didDismiss)="onModalDismiss()">
+  <ng-template>
+
+    <ion-header>
+      <ion-toolbar color="secondary">
+        <ion-title>{{ config.modalTitle }}</ion-title>
+        <ion-button slot="end" fill="clear" color="light" aria-label="Cerrar detalle" (click)="closeModal()">
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+
+      @if (selectedItem(); as item) {
+
+        <h3 class="modal-title">
+          Estudiante {{ config.idPrefix }}{{ item.id }}
+        </h3>
+
+        <p class="row-title">{{ item[config.nameField] }}</p>
+        <p class="modal-description text-muted">
+          <strong>Descripción:</strong> {{ item[config.descriptionField] }}
+        </p>
+
+        <div class="divider"></div>
+
+        <!-- Información Académica -->
+        <h4 class="detail-title">Resumen Académico:</h4>
+        <ion-list lines="none" class="detail-block">
+
+          <ion-item class="detail-row">
+            <ion-label>{{ config.netLabel }}:</ion-label>
+            <ion-note slot="end" color="dark">
+              {{ noteOf(item) | number:'1.1-2' }}
+            </ion-note>
+          </ion-item>
+          
+          <ion-item class="detail-row detail-total">
+            <ion-label>{{ config.totalLabel }}:</ion-label>
+            <ion-note slot="end" class="detail-total-value">
+              <ion-badge [color]="isCriticalNote(item) ? 'danger' : 'success'">
+                {{ isCriticalNote(item) ? config.criticalLabel : config.stableLabel }}
+              </ion-badge>
+            </ion-note>
+          </ion-item>
+
+          <ion-item class="detail-row">
+            <ion-label floating>Comentario  </ion-label>
+            <ion-input type="text"  required></ion-input>
+          </ion-item>
+
+        </ion-list>
+
+        <div class="ion-padding-top">
+          <ion-button expand="block" color="primary" shape="round" (click)="closeModal(true)">
+            {{ config.confirmActionLabel }}
+          </ion-button>
+        </div>
+      }
+
+    </ion-content>
+  </ng-template>
+</ion-modal>

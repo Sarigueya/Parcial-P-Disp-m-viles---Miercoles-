@@ -1,0 +1,173 @@
+
+.text-muted {
+  color: var(--ion-color-medium);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Avatar circular con el identificador del registro (ion-avatar). */
+.order-avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.avatar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.85rem;
+  font-weight: bold;
+
+  background: var(--ion-color-light);
+}
+
+.filter-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; 
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+
+.validation-note {
+  padding-inline-start: 4px;
+  font-size: 0.78rem;
+}
+
+
+.metric-card {
+  height: 100%;
+}
+
+.metric-label {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  margin: 4px 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.metric-hint {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.metric-card--danger .metric-value {
+  color: var(--ion-color-danger);
+}
+
+
+.order-item {
+  align-items: flex-start;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+}
+
+
+.row-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.order-item .row-title {
+  font-size: 1rem;
+}
+
+.row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 4px;
+  font-size: 0.85rem;
+}
+
+.row-strong {
+  font-weight: 500;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--ion-color-light-shade);
+}
+
+.item-actions ion-button {
+  margin: 0;
+  --padding-start: 10px;
+  --padding-end: 10px;
+}
+
+
+.item-actions ion-button::part(native) {
+  min-height: 40px;
+}
+
+/* Mensaje de error de carga. */
+.error-state {
+  color: var(--ion-color-danger);
+}
+
+.modal-title {
+  margin-top: 0;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+}
+
+.modal-description {
+  font-size: 0.95rem;
+  text-align: justify;
+  color: var(--ion-color-medium);
+}
+
+.divider {
+  margin: 20px 0;
+  border-top: 1px solid var(--ion-color-light-shade);
+}
+
+.detail-title {
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.detail-block {
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+}
+
+.detail-row {
+  --background: transparent;
+}
+
+.detail-total {
+  font-weight: bold;
+  border-top: 1px dashed var(--ion-color-light-shade);
+}
+
+.detail-total-value {
+  font-size: 1.1rem;
+}
